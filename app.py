@@ -25,7 +25,7 @@ db= SQLAlchemy(app)
 lm= LoginManager(app)
 
 
-class user(UserMixin, db.Model):
+class User(UserMixin, db.Model):
     __tablename__='users'
     id= db.Column(db.Integer, primary_key= True)
     username=db.Column(db.String(80), index= True)
@@ -34,9 +34,9 @@ class user(UserMixin, db.Model):
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        if slf.otp_secret is None:
+        if self.otp_secret is None:
             #generate a random secret
-            self.otp_secret=base64.b32encode(os.random(10).decode('utf-8'))
+            self.otp_secret=base64.b32encode(os.urandom(10)).decode('utf-8')
 
 @property
 def password(self):
@@ -88,12 +88,12 @@ def register():
         return redirect(url_for('index'))
     form = registration_form()
     if form.validate_on_submit():
-        user= user.query.filter_by(username= form.username.data).first()
+        user= User.query.filter_by(username= form.username.data).first()
         if user is not None:
             flash('Username already exists.' )
             return redirect(url_for('register'))
         #add new user to the db
-        user= User(username=form.username.data, password=form.password.data)
+        user = User(username=form.username.data, password_hash=form.password.data)
         db.session.add(user)
         db.session.commit()
         #redirect to the Two FACT auth
@@ -102,14 +102,14 @@ def register():
     return render_template('register.html', form=form)
 
 @app.route('/twofactor')
-def two_factor():
+def two_factor_setup():
     if 'username' not in session:
         return redirect(url_for('index'))
     user = User.query.filter_by(username=session['username']).first()
     if user is None:
         return redirect(url_for('index'))
         #make sur the browser doesnt cache the QR code
-    return render_template('two_factor.html'), 200, {
+    return render_template('two_factor_setup.html'), 200, {
         'Cache-Control':'no-cache, no-store, must-revalidate',
         'Pragma': 'no_cache',
         'Expires': '0'}
@@ -164,4 +164,4 @@ db.create_all()
 
 
 if __name__=='__main__':
-    run.app(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0',port= 5000, debug=True)
