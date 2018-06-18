@@ -54,7 +54,7 @@ def verify_password(self, password):
 enter your path from the app 'free OTP' #below get_top_uri
 """
 def get_totp_uri(self):
-    return 'otpauth://totp/2FA-Demo:{0}?secret={1}&issuer=2FA-Demo'.format(self.username, self.otp_secret)
+    return 'otpauth://totp/CHIRANJIVI:{0}?secret={jlvobvf27xgo3ddddahw2pkz2ppykjqkaqr7zfqfjswt6j32k23eaxt7}&issuer=CHIRANJIVI'.format(self.username, self.otp_secret)
 
 def verify_totp(self, token):
     return onetimepass.valid_totp(token,self.otp_secret)
@@ -88,7 +88,7 @@ def register():
         return redirect(url_for('index'))
     form = registration_form()
     if form.validate_on_submit():
-        user= User.query.filter_by(username= form.username.data).first()
+        user= user.query.filter_by(username= form.username.data).first()
         if user is not None:
             flash('Username already exists.' )
             return redirect(url_for('register'))
@@ -125,7 +125,7 @@ def qrcode():
     del session['username']
     #render qr code for free totp
 
-    url= pyqecode.create(user.get_top_uri())
+    url= pyqrcode.create(user.get_top_uri())
     stream= BytesIO()
     url.svg(stream, scale=5)
     return stream.getvalue(),200,{
